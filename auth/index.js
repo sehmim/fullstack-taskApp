@@ -11,7 +11,7 @@ users.createIndex('username', { unique : true })
 
 const schema = Joi.object().keys({
     username: Joi.string().alphanum().min(3).max(30).required(),
-    password: Joi.string().min(6).required()
+    password: Joi.string().trim().min(6).required()
 });
 
 router.get('/', (req, res) => {
@@ -31,7 +31,7 @@ router.post('/signup', (req, res,next) => {
             username: req.body.username
         }).then( user => {
             if (user) {
-                const error = new Error('Error, username not Available');
+                const error = new Error('Error, username is Already Taken');
                 next(error);
             } else {
                 bcrypt.hash(req.body.password, 8).then(hashedPassword => {
@@ -42,6 +42,7 @@ router.post('/signup', (req, res,next) => {
                     };
 
                     users.insert(newUser).then( insertedUser => {
+                        delete insertedUser.password
                         res.json(insertedUser);
                     });
                 });
@@ -50,6 +51,13 @@ router.post('/signup', (req, res,next) => {
     } else {
         next(result.error);
     }
+})
+
+
+// POST /auth/login
+
+router.post('/login', (req, res,next) => {
+
 })
 
 module.exports = router;
